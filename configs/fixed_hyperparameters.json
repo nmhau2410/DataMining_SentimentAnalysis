@@ -1,0 +1,51 @@
+{
+  "global": {
+    "seed": 42,
+    "primary_metric": "macro_f1"
+  },
+
+  "tfidf": {
+    "ngram_range": [1, 2],
+    "lowercase": true,
+    "norm": "l2"
+  },
+
+  "multinomial_nb": {
+    "alpha": 1.0,
+    "fit_prior": true
+  },
+
+  "logistic_regression": {
+    "C": 1.0,
+    "penalty": "l2",
+    "solver": "lbfgs",
+    "class_weight": "balanced",
+    "max_iter": 1000
+  },
+
+  "linear_svm": {
+    "C": 1.0,
+    "loss": "squared_hinge",
+    "class_weight": "balanced",
+    "max_iter": 5000
+  },
+
+  "textcnn": {
+    "embedding_dim": 300,
+    "kernel_sizes": [3, 4, 5],
+    "num_filters": 100,
+    "dropout": 0.5,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "epochs": 50
+  },
+
+  "phobert": {
+    "model_name": "vinai/phobert-base-v2",
+    "max_length": 64,
+    "batch_size": 16,
+    "learning_rate": 0.00002,
+    "weight_decay": 0.01,
+    "epochs": 50
+  }
+}

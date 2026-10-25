@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE
+.idea/
+
+# Virtual environment
+.venv/
+venv/
+
+# Dataset local
+data/raw/
+data/processed/
+
+# Model checkpoints
+checkpoints/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Cache
+.cache/
+huggingface/
+wandb/
+
+# OS
+.DS_Store
+Thumbs.db
