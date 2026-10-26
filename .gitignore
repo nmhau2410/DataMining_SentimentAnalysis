@@ -12,6 +12,7 @@ venv/
 # Dataset local
 data/raw/
 data/processed/
+tools/vncorenlp/
 
 # Model checkpoints
 checkpoints/
