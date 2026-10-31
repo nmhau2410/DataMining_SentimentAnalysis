@@ -1,0 +1,24 @@
+{
+    "model": "TextCNN",
+    "selection_metric": "validation_macro_f1",
+    "best_validation_macro_f1": 0.813087629128057,
+    "best_validation_neutral_f1": 0.5859872611464968,
+    "best_validation_accuracy": 0.9102969046114971,
+    "best_params": {
+        "embedding_dim": 128,
+        "num_filters": 64,
+        "dropout": 0.3,
+        "learning_rate": 0.001,
+        "kernel_sizes": [
+            3,
+            4,
+            5
+        ],
+        "batch_size": 64,
+        "max_length": 64,
+        "class_weight": "balanced",
+        "best_epoch": 12
+    },
+    "seed": 42,
+    "search_trials": 8
+}

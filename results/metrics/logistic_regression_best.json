@@ -1,0 +1,22 @@
+{
+  "model": "logistic_regression",
+  "selection_metric": "validation_macro_f1",
+  "best_validation_macro_f1": 0.773382083136974,
+  "best_validation_neutral_f1": 0.4727272727272727,
+  "best_validation_accuracy": 0.9008212255211624,
+  "best_params": {
+    "model__C": 10.0,
+    "model__class_weight": "balanced",
+    "tfidf__min_df": 2,
+    "tfidf__ngram_range": [
+      1,
+      2
+    ]
+  },
+  "trial_count": 24,
+  "smoke_test_only": false,
+  "seed": 42,
+  "train_rows": 11424,
+  "validation_rows": 1583,
+  "test_used": false
+}

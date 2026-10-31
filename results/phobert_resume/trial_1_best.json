@@ -1,0 +1,13 @@
+{
+  "trial": 1,
+  "best_epoch": 6,
+  "best_macro_f1": 0.8663878550293796,
+  "config": {
+    "learning_rate": 2e-05,
+    "batch_size": 1,
+    "accum": 8,
+    "max_length": 64,
+    "weight_decay": 0.01
+  },
+  "seed": 42
+}
