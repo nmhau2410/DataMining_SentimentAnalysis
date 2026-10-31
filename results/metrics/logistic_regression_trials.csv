@@ -1,0 +1,25 @@
+﻿trial,params_json,validation_macro_f1,validation_neutral_f1,validation_accuracy
+1,"{""model__C"": 0.1, ""model__class_weight"": null, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.6067448862791506,0.0,0.8894504106127605
+2,"{""model__C"": 0.1, ""model__class_weight"": null, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6020326288214284,0.0,0.8825015792798484
+3,"{""model__C"": 0.1, ""model__class_weight"": null, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6067327892864616,0.0,0.8894504106127605
+4,"{""model__C"": 0.1, ""model__class_weight"": null, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.6041576186327992,0.0,0.8856601389766267
+5,"{""model__C"": 0.1, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.6926885845705192,0.32903225806451614,0.8218572331017057
+6,"{""model__C"": 0.1, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.7065322649623522,0.35714285714285715,0.8445988629185092
+7,"{""model__C"": 0.1, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6922016108342266,0.3258785942492013,0.8218572331017057
+8,"{""model__C"": 0.1, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.7079485299126804,0.36134453781512604,0.8427037271004422
+9,"{""model__C"": 1.0, ""model__class_weight"": null, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.6929544571663446,0.22988505747126436,0.9058749210360075
+10,"{""model__C"": 1.0, ""model__class_weight"": null, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6719262081953206,0.1518987341772152,0.9128237523689198
+11,"{""model__C"": 1.0, ""model__class_weight"": null, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6854615875665894,0.20930232558139536,0.9046114971572963
+12,"{""model__C"": 1.0, ""model__class_weight"": null, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.6864877725409944,0.1951219512195122,0.9134554643082754
+13,"{""model__C"": 1.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.7295989776615267,0.384,0.8622867972204674
+14,"{""model__C"": 1.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.7608404369391053,0.4444444444444444,0.8951358180669615
+15,"{""model__C"": 1.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.7315724409885817,0.3843137254901961,0.8641819330385344
+16,"{""model__C"": 1.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.7602900624822206,0.44559585492227977,0.8894504106127605
+17,"{""model__C"": 10.0, ""model__class_weight"": null, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.7366279886585841,0.3652173913043478,0.9027163613392293
+18,"{""model__C"": 10.0, ""model__class_weight"": null, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.7505925315202413,0.3838383838383838,0.9172457359444094
+19,"{""model__C"": 10.0, ""model__class_weight"": null, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.7261867276215357,0.336283185840708,0.9008212255211624
+20,"{""model__C"": 10.0, ""model__class_weight"": null, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.7448042230422304,0.38,0.9102969046114971
+21,"{""model__C"": 10.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.7319076471488378,0.3879310344827586,0.8673404927353127
+22,"{""model__C"": 10.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.7702882346508231,0.45255474452554745,0.9090334807327859
+23,"{""model__C"": 10.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.7318797451641091,0.391304347826087,0.8660770688566014
+24,"{""model__C"": 10.0, ""model__class_weight"": ""balanced"", ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.773382083136974,0.4727272727272727,0.9008212255211624

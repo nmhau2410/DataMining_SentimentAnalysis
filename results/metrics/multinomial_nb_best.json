@@ -1,0 +1,22 @@
+{
+  "model": "multinomial_nb",
+  "selection_metric": "validation_macro_f1",
+  "best_validation_macro_f1": 0.7504318547796808,
+  "best_validation_neutral_f1": 0.41818181818181815,
+  "best_validation_accuracy": 0.899557801642451,
+  "best_params": {
+    "model__alpha": 0.1,
+    "model__fit_prior": false,
+    "tfidf__min_df": 1,
+    "tfidf__ngram_range": [
+      1,
+      2
+    ]
+  },
+  "trial_count": 24,
+  "smoke_test_only": false,
+  "seed": 42,
+  "train_rows": 11424,
+  "validation_rows": 1583,
+  "test_used": false
+}

@@ -1,0 +1,25 @@
+﻿trial,params_json,validation_macro_f1,validation_neutral_f1,validation_accuracy
+1,"{""model__alpha"": 0.1, ""model__fit_prior"": true, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.6554572153932786,0.1951219512195122,0.8679722046746684
+2,"{""model__alpha"": 0.1, ""model__fit_prior"": true, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6808458334401438,0.21951219512195122,0.8938723941882502
+3,"{""model__alpha"": 0.1, ""model__fit_prior"": true, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6383756165350937,0.14457831325301204,0.8660770688566014
+4,"{""model__alpha"": 0.1, ""model__fit_prior"": true, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.6968609271379961,0.26666666666666666,0.8938723941882502
+5,"{""model__alpha"": 0.1, ""model__fit_prior"": false, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.6940519165144036,0.34101382488479265,0.8351231838281743
+6,"{""model__alpha"": 0.1, ""model__fit_prior"": false, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.7504318547796808,0.41818181818181815,0.899557801642451
+7,"{""model__alpha"": 0.1, ""model__fit_prior"": false, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6827034104734494,0.32653061224489793,0.8205938092229943
+8,"{""model__alpha"": 0.1, ""model__fit_prior"": false, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.7432006967882447,0.41420118343195267,0.8818698673404928
+9,"{""model__alpha"": 1.0, ""model__fit_prior"": true, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.593434746949797,0.0,0.8698673404927353
+10,"{""model__alpha"": 1.0, ""model__fit_prior"": true, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6058957902752095,0.0,0.8881869867340493
+11,"{""model__alpha"": 1.0, ""model__fit_prior"": true, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.593434746949797,0.0,0.8698673404927353
+12,"{""model__alpha"": 1.0, ""model__fit_prior"": true, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.605033093741894,0.0,0.886923562855338
+13,"{""model__alpha"": 1.0, ""model__fit_prior"": false, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.6824451410418154,0.26785714285714285,0.8679722046746684
+14,"{""model__alpha"": 1.0, ""model__fit_prior"": false, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6560138185035265,0.14814814814814814,0.8907138344914719
+15,"{""model__alpha"": 1.0, ""model__fit_prior"": false, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6944219641821893,0.3120567375886525,0.8603916614024005
+16,"{""model__alpha"": 1.0, ""model__fit_prior"": false, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.6825388203892965,0.23255813953488372,0.8894504106127605
+17,"{""model__alpha"": 3.0, ""model__fit_prior"": true, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.5955970501993165,0.0,0.8730259001895135
+18,"{""model__alpha"": 3.0, ""model__fit_prior"": true, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6023985319642902,0.0,0.883133291219204
+19,"{""model__alpha"": 3.0, ""model__fit_prior"": true, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.5951274603901144,0.0,0.8723941882501579
+20,"{""model__alpha"": 3.0, ""model__fit_prior"": true, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.6010908150393863,0.0,0.881238155401137
+21,"{""model__alpha"": 3.0, ""model__fit_prior"": false, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 1]}",0.642861671456404,0.1411764705882353,0.8736576121288693
+22,"{""model__alpha"": 3.0, ""model__fit_prior"": false, ""tfidf__min_df"": 1, ""tfidf__ngram_range"": [1, 2]}",0.6291952347116743,0.07792207792207792,0.885028427037271
+23,"{""model__alpha"": 3.0, ""model__fit_prior"": false, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 1]}",0.6615913847530496,0.20754716981132076,0.8660770688566014
+24,"{""model__alpha"": 3.0, ""model__fit_prior"": false, ""tfidf__min_df"": 2, ""tfidf__ngram_range"": [1, 2]}",0.6296466776509053,0.07792207792207792,0.8856601389766267
