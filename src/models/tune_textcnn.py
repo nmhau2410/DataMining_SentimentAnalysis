@@ -1,43 +1,52 @@
 import argparse
-import copy
 import json
 import random
 from collections import Counter
-from itertools import product
 from pathlib import Path
-
-import matplotlib
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
-from src.utils.image_saver import save_optimized_figure
 import numpy as np
+import optuna
 import pandas as pd
 import torch
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    ConfusionMatrixDisplay,
-    f1_score,
-)
+from optuna.pruners import HyperbandPruner, NopPruner
+from optuna.samplers import TPESampler
+from optuna.trial import TrialState
+from sklearn.metrics import accuracy_score, f1_score
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
-# 1. CAU HINH CHUNG
-
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data" / "processed"
-
-LABEL_NAMES = ["Negative", "Neutral", "Positive"]
-KERNEL_SIZES = (3, 4, 5)
-
-DEVICE = torch.device("cpu")
+RESULT_DIR = ROOT / "results" / "textcnn_tuning_v2"
+CONFIG_DIR = ROOT / "configs"
 
 
-def set_seed(seed=42):
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+MAX_LENGTH = 64
+MIN_FREQ = 2
+LABELS = [0, 1, 2]
+
+KERNEL_CHOICES = {
+    "123": (1, 2, 3),
+    "234": (2, 3, 4),
+    "345": (3, 4, 5),
+    "456": (4, 5, 6),
+    "567": (5, 6, 7),
+    "2345": (2, 3, 4, 5),
+    "3456": (3, 4, 5, 6),
+}
+
+CONFIRM_SEEDS = [123, 777, 2026]
+
+
+def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 # 2. DOC DU LIEU
 
@@ -46,12 +55,8 @@ def load_data(smoke=False):
     val = pd.read_csv(DATA_DIR / "validation.csv")
 
     if smoke:
-        train = train.sample(
-            n=min(512, len(train)), random_state=42
-        )
-        val = val.sample(
-            n=min(256, len(val)), random_state=42
-        )
+        train = train.sample(n=min(512, len(train)), random_state=42)
+        val = val.sample(n=min(256, len(val)), random_state=42)
 
     train = train.reset_index(drop=True)
     val = val.reset_index(drop=True)
@@ -64,7 +69,7 @@ def load_data(smoke=False):
 
 # 3. TAO VOCABULARY
 
-def build_vocab(texts, min_freq=2):
+def build_vocab(texts,min_freq=MIN_FREQ):
     counter = Counter()
 
     for text in texts:
@@ -79,7 +84,7 @@ def build_vocab(texts, min_freq=2):
     return vocab
 
 
-def encode_texts(texts, vocab, max_length=64):
+def encode_texts(texts, vocab, max_length=MAX_LENGTH,):
     encoded = []
 
     for text in texts:
@@ -195,374 +200,447 @@ def evaluate(model, loader, criterion):
         "y_pred": all_pred,
     }
 
+def make_loaders(X_train, y_train, X_val, y_val, batch_size, seed,):
+    generator = torch.Generator()
+    generator.manual_seed(seed)
+
+    train_loader = DataLoader(
+        TensorDataset(X_train, y_train),
+        batch_size=batch_size,
+        shuffle=True,
+        generator=generator,
+        num_workers=0,
+    )
+
+    val_loader = DataLoader(
+        TensorDataset(X_val, y_val,),
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+    )
+
+    return train_loader, val_loader
 
 
-# 6. TRAIN MOT BO THAM SO
+def make_criterion(y_train, class_weight,):
+    if class_weight == "none":
+        return nn.CrossEntropyLoss()
 
-def train_config(
-        config,
-        train_loader,
-        val_loader,
-        vocab_size,
-        class_weights,
-        epochs,
-        patience,
-        seed,
-):
+    counts = np.bincount(y_train.numpy(),minlength=3)
+    weights = len(y_train) / (3 * np.maximum(counts, 1))
+    weights = torch.tensor(weights, dtype=torch.float32,device=DEVICE)
+
+    return nn.CrossEntropyLoss(weight=weights)
+
+
+def train_config(config, X_train, y_train, X_val, y_val, vocab_size, epochs, seed, trial=None,):
     set_seed(seed)
+
+    train_loader, val_loader = (
+        make_loaders(X_train, y_train, X_val, y_val, config["batch_size"], seed,)
+    )
 
     model = TextCNN(
         vocab_size=vocab_size,
-        embedding_dim=config["embedding_dim"],
-        num_filters=config["num_filters"],
-        kernel_sizes=KERNEL_SIZES,
+        embedding_dim=(config["embedding_dim"]),
+        num_filters=(config["num_filters"]),
+        kernel_sizes=(config["kernel_sizes"]),
         dropout=config["dropout"],
     ).to(DEVICE)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=config["learning_rate"],
-        weight_decay=0.01,
+        weight_decay=(config["weight_decay"]),
     )
 
-    criterion = nn.CrossEntropyLoss(
-        weight=class_weights
-    )
+    criterion = make_criterion(y_train, config["class_weight"])
 
-    best_score = -1.0
-    best_epoch = 0
-    best_state = None
-    best_eval = None
-
-    wait = 0
-    history = []
+    best = None
 
     for epoch in range(1, epochs + 1):
         model.train()
 
-        total_loss = 0
-        total_samples = 0
+        total_loss = 0.0
+        total_items = 0
 
         for x, y in train_loader:
             x = x.to(DEVICE)
             y = y.to(DEVICE)
 
-            optimizer.zero_grad()
-
+            optimizer.zero_grad(set_to_none=True)
             logits = model(x)
-            loss = criterion(logits, y)
-
+            loss = criterion(logits, y,)
             loss.backward()
             optimizer.step()
+            total_loss += (loss.item() * len(y))
+            total_items += len(y)
 
-            total_loss += loss.item() * len(y)
-            total_samples += len(y)
+        metrics = evaluate(model, val_loader, criterion)
 
-        train_loss = total_loss / total_samples
-        result = evaluate(model, val_loader, criterion)
-
-        history.append({
+        result = {
             "epoch": epoch,
-            "train_loss": train_loss,
-            "val_loss": result["val_loss"],
-            "val_macro_f1": result["macro_f1"],
-            "val_neutral_f1": result["neutral_f1"],
-            "val_accuracy": result["accuracy"],
-        })
+            "train_loss": total_loss / total_items, **metrics,
+        }
 
-        print(
-            f"Epoch {epoch:02d}/{epochs} | "
-            f"Train Loss={train_loss:.4f} | "
-            f"Val Loss={result['val_loss']:.4f} | "
-            f"Macro F1={result['macro_f1']:.4f} | "
-            f"Neutral F1={result['neutral_f1']:.4f}",
-            flush=True,
-        )
+        if (
+            best is None
+            or result["macro_f1"]
+            > best["macro_f1"]
+            or (
+                result["macro_f1"]
+                == best["macro_f1"]
+                and result["neutral_f1"]
+                > best["neutral_f1"]
+            )
+        ):
+            best = result
 
-        if result["macro_f1"] > best_score:
-            best_score = result["macro_f1"]
-            best_epoch = epoch
-            best_state = copy.deepcopy(model.state_dict())
-            best_eval = result
-            wait = 0
-        else:
-            wait += 1
+        if trial is not None:
+            trial.report(result["macro_f1"], step=epoch,)
 
-        if wait >= patience:
-            print("Early Stopping activated.")
-            break
+            if trial.should_prune():
+                raise optuna.TrialPruned()
+
+    return best
+
+def suggest_config(trial):
+    kernel_name = (trial.suggest_categorical("kernel_sizes", list(KERNEL_CHOICES)))
 
     return {
-        "best_score": float(best_score),
-        "best_epoch": best_epoch,
-        "best_state": best_state,
-        "best_eval": best_eval,
-        "history": history,
+        "embedding_dim": trial.suggest_categorical("embedding_dim", [64, 128, 200, 300],),
+        "num_filters": trial.suggest_categorical("num_filters", [64, 100, 128, 200],),
+        "kernel_sizes": KERNEL_CHOICES[kernel_name],
+        "dropout": trial.suggest_float("dropout", 0.2, 0.6, step=0.1,),
+        "learning_rate": trial.suggest_float("learning_rate", 1e-4, 3e-3, log=True,),
+        "weight_decay": trial.suggest_categorical("weight_decay", [0.0, 1e-5, 1e-4, 1e-3, 1e-2]),
+        "batch_size": trial.suggest_categorical("batch_size", [16, 32, 64, 128],),
+        "class_weight": trial.suggest_categorical("class_weight", ["none", "balanced"]),
     }
 
 
-# 7. TIM BO THAM SO TOT NHAT
+def objective(trial, X_train, y_train, X_val, y_val, vocab_size, epochs, seed,):
+    config = suggest_config(trial)
 
+    best = train_config(
+        config=config,
+        X_train=X_train,
+        y_train=y_train,
+        X_val=X_val,
+        y_val=y_val,
+        vocab_size=vocab_size,
+        epochs=epochs,
+        seed=seed,
+        trial=trial,
+    )
+
+    trial.set_user_attr("best_epoch", best["epoch"])
+    trial.set_user_attr("neutral_f1", best["neutral_f1"])
+    trial.set_user_attr("accuracy", best["accuracy"])
+    return best["macro_f1"]
+
+
+def trial_to_config(trial):
+    params = trial.params
+
+    return {
+        "embedding_dim": params["embedding_dim"],
+        "num_filters": params["num_filters"],
+        "kernel_sizes": KERNEL_CHOICES[params["kernel_sizes"]],
+        "dropout": params["dropout"],
+        "learning_rate": params["learning_rate"],
+        "weight_decay": params["weight_decay"],
+        "batch_size": params["batch_size"],
+        "class_weight": params["class_weight"],
+    }
+
+
+def confirm_top_configs(study, X_train, y_train, X_val, y_val, vocab_size, epochs, top_k):
+    completed = [trial for trial in study.trials if trial.state == TrialState.COMPLETE]
+    completed.sort(key=lambda trial: trial.value,reverse=True)
+
+    top_trials = completed[:top_k]
+
+    output_path = (RESULT_DIR / "confirmation_trials.csv")
+    if output_path.exists():
+        rows = pd.read_csv(output_path).to_dict("records")
+    else:
+        rows = []
+
+    for trial in top_trials:
+        config = trial_to_config(trial)
+
+        print("\nConfirm trial:", trial.number,)
+
+        for seed in CONFIRM_SEEDS:
+            already_done = any(
+                int(row["trial"]) == trial.number
+                and int(row["seed"]) == seed
+                for row in rows
+            )
+
+            if already_done:
+                print(
+                    f"Skip trial "
+                    f"{trial.number}, "
+                    f"seed {seed}"
+                )
+                continue
+
+            best = train_config(
+                config=config,
+                X_train=X_train,
+                y_train=y_train,
+                X_val=X_val,
+                y_val=y_val,
+                vocab_size=vocab_size,
+                epochs=epochs,
+                seed=seed,
+            )
+
+            rows.append({
+                "trial": trial.number,
+                "seed": seed,
+                **config,
+                "best_epoch": best["epoch"],
+                "macro_f1": best["macro_f1"],
+                "neutral_f1": best["neutral_f1"],
+                "accuracy": best["accuracy"],
+            })
+
+            pd.DataFrame(rows).to_csv(output_path, index=False, encoding="utf-8-sig",)
+
+    current_trials = {trial.number for trial in top_trials}
+
+    df = pd.DataFrame(rows)
+    return df[df["trial"].isin(current_trials)].copy()
+
+
+def select_best(confirmation):
+    summary = (confirmation.groupby("trial").agg(
+            mean_macro_f1=("macro_f1", "mean",),
+            std_macro_f1=("macro_f1", "std",),
+            mean_neutral_f1=("neutral_f1", "mean",),
+            mean_accuracy=("accuracy", "mean",),
+        ).reset_index()
+    )
+
+    summary = summary.sort_values(
+        [
+            "mean_macro_f1",
+            "mean_neutral_f1",
+            "std_macro_f1",
+        ],
+        ascending=[False, False, True,],
+    )
+
+    best_trial = int(summary.iloc[0]["trial"])
+    return best_trial, summary
+
+# 7. TIM BO THAM SO TOT NHAT
 def main():
     parser = argparse.ArgumentParser()
-
-    parser.add_argument("--smoke", action="store_true")
-    parser.add_argument("--full", action="store_true")
-    parser.add_argument("--epochs", type=int, default=10)
-    parser.add_argument("--patience", type=int, default=3)
-    parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--max-length", type=int, default=64)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--smoke", action="store_true",)
+    parser.add_argument("--trials", type=int, default=120)
+    parser.add_argument("--epochs", type=int, default=50,)
+    parser.add_argument("--top-k", type=int, default=5,)
+    parser.add_argument("--seed", type=int, default=42,)
 
     args = parser.parse_args()
 
     set_seed(args.seed)
 
-    torch.set_num_threads(4)
+    if DEVICE.type == "cpu":
+        torch.set_num_threads(min(4, torch.get_num_threads()))
 
     train, val = load_data(smoke=args.smoke)
 
-    train_texts = train["text_segmented"].fillna("")
-    val_texts = val["text_segmented"].fillna("")
+    train_texts = (train["text_segmented"].fillna("").astype(str))
+    val_texts = (val["text_segmented"].fillna("").astype(str))
 
     vocab = build_vocab(train_texts)
 
-    X_train = encode_texts(
-        train_texts, vocab, args.max_length
-    )
-    X_val = encode_texts(
-        val_texts, vocab, args.max_length
-    )
+    X_train = encode_texts(train_texts,vocab)
+    X_val = encode_texts(val_texts, vocab,)
+    y_train = torch.tensor(train["sentiment"].to_numpy(), dtype=torch.long)
+    y_val = torch.tensor(val["sentiment"].to_numpy(), dtype=torch.long,)
 
-    y_train = torch.tensor(
-        train["sentiment"].to_numpy(),
-        dtype=torch.long,
-    )
-    y_val = torch.tensor(
-        val["sentiment"].to_numpy(),
-        dtype=torch.long,
-    )
+    RESULT_DIR.mkdir(parents=True, exist_ok=True,)
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True,)
 
-    train_loader = DataLoader(
-        TensorDataset(X_train, y_train),
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=0,
-    )
-
-    val_loader = DataLoader(
-        TensorDataset(X_val, y_val),
-        batch_size=args.batch_size,
-        shuffle=False,
-        num_workers=0,
-    )
-
-    # Xu ly mat can bang nhan
-    counts = np.bincount(
-        y_train.numpy(), minlength=3
-    )
-
-    weights = len(y_train) / (
-            3 * np.maximum(counts, 1)
-    )
-
-    class_weights = torch.tensor(
-        weights, dtype=torch.float32
-    ).to(DEVICE)
-
-    print("Vocabulary size:", len(vocab))
-    print("Class weights:", class_weights.tolist())
     print("Device:", DEVICE)
+    print("Train:", len(train))
+    print("Validation:", len(val))
+    print("Vocabulary:", len(vocab))
+    print("Max length:", MAX_LENGTH)
+    print("Min freq:", MIN_FREQ)
 
-    # Danh sach bo tham so can thu
+    epochs = (1 if args.smoke else args.epochs)
+    sampler = TPESampler(seed=args.seed)
+
     if args.smoke:
-        configs = [
-            (128, 64, 0.3, 0.001)
-        ]
-    elif args.full:
-        configs = list(product(
-            [128],
-            [64, 100],
-            [0.3, 0.5],
-            [0.001, 0.0005],
-        ))
+        pruner = NopPruner()
+        storage = None
+        study_name = None
     else:
-        configs = list(product(
-            [128],
-            [64, 100],
-            [0.3, 0.5],
-            [0.001],
-        ))
+        pruner = HyperbandPruner(min_resource=5, max_resource=args.epochs, reduction_factor=3)
+        db_path = (RESULT_DIR / "optuna.db").resolve()
+        storage = ("sqlite:///" + str(db_path).replace("\\", "/"))
+        study_name = ("textcnn_tuning_v2")
 
-    max_epochs = 1 if args.smoke else args.epochs
-
-    output_root = ROOT / "results"
+    study = optuna.create_study(
+        direction="maximize",
+        sampler=sampler,
+        pruner=pruner,
+        storage=storage,
+        study_name=study_name,
+        load_if_exists=(
+            not args.smoke
+        ),
+    )
 
     if args.smoke:
-        output_root = output_root / "smoke"
-
-    metrics_dir = output_root / "metrics"
-    history_dir = output_root / "training_history"
-    cm_dir = output_root / "confusion_matrix"
-
-    checkpoint_dir = ROOT / "checkpoints"
-    if args.smoke:
-        checkpoint_dir = checkpoint_dir / "smoke"
-
-    for directory in [
-        metrics_dir, history_dir,
-        cm_dir, checkpoint_dir
-    ]:
-        directory.mkdir(parents=True, exist_ok=True)
-
-    trials = []
-    all_history = []
-
-    global_best = -1.0
-    global_params = None
-    global_eval = None
-
-    for trial_id, values in enumerate(configs, 1):
-        embedding_dim, num_filters, dropout, lr = values
-
-        config = {
-            "embedding_dim": embedding_dim,
-            "num_filters": num_filters,
-            "dropout": dropout,
-            "learning_rate": lr,
-            "kernel_sizes": list(KERNEL_SIZES),
-            "batch_size": args.batch_size,
-            "max_length": args.max_length,
-            "class_weight": "balanced",
-        }
-
-        print(
-            f"\n===== TEXTCNN {trial_id}/{len(configs)} ====="
+        remaining_trials = 1
+    else:
+        finished_trials = sum(trial.state in {
+                TrialState.COMPLETE,
+                TrialState.PRUNED,
+            }
+            for trial in study.trials
         )
-        print("Parameters:", config, flush=True)
 
-        result = train_config(
-            config=config,
-            train_loader=train_loader,
-            val_loader=val_loader,
+        remaining_trials = max(0, args.trials - finished_trials,)
+
+    print(
+        f"Finished trials: "
+        f"{len(study.trials)}"
+    )
+
+    print(
+        f"Remaining trials: "
+        f"{remaining_trials}"
+    )
+
+    if remaining_trials > 0:
+        study.optimize(
+            lambda trial: objective(
+                trial=trial,
+                X_train=X_train,
+                y_train=y_train,
+                X_val=X_val,
+                y_val=y_val,
+                vocab_size=len(vocab),
+                epochs=epochs,
+                seed=args.seed,
+            ),
+            n_trials=remaining_trials,
+        )
+    else:
+        print("Search already completed.")
+
+    if args.smoke:
+        print("\nSmoke test completed.")
+        return
+
+    search_df = study.trials_dataframe()
+    search_df.to_csv(RESULT_DIR / "search_trials.csv", index=False, encoding="utf-8-sig",)
+
+    confirmation = (
+        confirm_top_configs(
+            study=study,
+            X_train=X_train,
+            y_train=y_train,
+            X_val=X_val,
+            y_val=y_val,
             vocab_size=len(vocab),
-            class_weights=class_weights,
-            epochs=max_epochs,
-            patience=args.patience,
-            seed=args.seed,
+            epochs=args.epochs,
+            top_k=args.top_k,
         )
+    )
 
-        trials.append({
-            "trial": trial_id,
-            **config,
-            "best_epoch": result["best_epoch"],
-            "val_macro_f1": result["best_score"],
-            "val_neutral_f1": float(
-                result["best_eval"]["neutral_f1"]
-            ),
-            "val_accuracy": float(
-                result["best_eval"]["accuracy"]
-            ),
-        })
+    confirmation.to_csv(RESULT_DIR / "confirmation_trials.csv", index=False, encoding="utf-8-sig",)
 
-        for record in result["history"]:
-            all_history.append({
-                "trial": trial_id,
-                **config,
-                **record,
-            })
+    best_trial_number, summary = (select_best( confirmation))
+    summary.to_csv(RESULT_DIR / "confirmation_summary.csv",index=False, encoding="utf-8-sig",)
 
-        print(
-            f"BEST trial {trial_id}: "
-            f"Macro F1={result['best_score']:.4f} | "
-            f"Epoch={result['best_epoch']}"
-        )
+    best_trial = next(trial for trial in study.trials if trial.number == best_trial_number)
+    best_config = (trial_to_config(best_trial))
 
-        if result["best_score"] > global_best:
-            global_best = result["best_score"]
-            global_params = config.copy()
-            global_params["best_epoch"] = result["best_epoch"]
-            global_eval = result["best_eval"]
-
-            torch.save({
-                "model_state_dict": result["best_state"],
-                "vocab": vocab,
-                "params": global_params,
-                "seed": args.seed,
-            }, checkpoint_dir / "textcnn_best.pt")
-
-        # Luu ket qua sau moi trial
-        pd.DataFrame(trials).to_csv(
-            metrics_dir / "textcnn_trials.csv",
-            index=False,
-            encoding="utf-8-sig",
-            )
-
-        pd.DataFrame(all_history).to_csv(
-            history_dir / "textcnn_history.csv",
-            index=False,
-            encoding="utf-8-sig",
-            )
-
-    # 8. LUU KET QUA TOT NHAT
-
-    best_summary = {
-        "model": "TextCNN",
-        "selection_metric": "validation_macro_f1",
-        "best_validation_macro_f1": global_best,
-        "best_validation_neutral_f1": float(
-            global_eval["neutral_f1"]
-        ),
-        "best_validation_accuracy": float(
-            global_eval["accuracy"]
-        ),
-        "best_params": global_params,
-        "seed": args.seed,
-        "search_trials": len(configs),
+    selected = {
+        "embedding_dim": best_config["embedding_dim"],
+        "num_filters": best_config["num_filters"],
+        "kernel_sizes": list(best_config["kernel_sizes"]),
+        "dropout": best_config["dropout"],
+        "learning_rate": best_config["learning_rate"],
+        "weight_decay":best_config["weight_decay"],
+        "batch_size": best_config["batch_size"],
+        "class_weight": best_config["class_weight"],
+        "max_length": MAX_LENGTH,
+        "min_freq": MIN_FREQ,
+        "optimizer": "AdamW",
+        "epochs": args.epochs,
+        "selection_metric": "mean_validation_macro_f1",
+        "confirmation_seeds": CONFIRM_SEEDS,
     }
 
-    with open(
-            metrics_dir / "textcnn_best.json",
-            "w",
-            encoding="utf-8",
-    ) as f:
-        json.dump(
-            best_summary, f,
-            ensure_ascii=False,
-            indent=4,
-        )
+    best_row = (summary[summary["trial"] == best_trial_number].iloc[0])
 
-    cm = confusion_matrix(
-        global_eval["y_true"],
-        global_eval["y_pred"],
-        labels=[0, 1, 2],
-    )
+    evidence = {
+        "model": "TextCNN",
+        "search_method": "Optuna TPE + Hyperband",
+        "search_trials": len(study.trials),
+        "best_trial": best_trial_number,
+        "selection_metric": "mean_validation_macro_f1",
+        "tie_breakers": ["mean_validation_neutral_f1", "lower_std_macro_f1"],
+        "mean_validation_macro_f1": float(best_row["mean_macro_f1"]),
+        "std_validation_macro_f1": float(best_row["std_macro_f1"]),
+        "mean_validation_neutral_f1": float(best_row["mean_neutral_f1"]),
+        "best_params": selected,
+        "test_used": False,
 
-    disp = ConfusionMatrixDisplay(
-        confusion_matrix=cm,
-        display_labels=LABEL_NAMES,
-    )
+        "search_space": {
+            "embedding_dim": [64, 128, 200, 300],
+            "num_filters": [64, 100, 128, 200],
+            "kernel_sizes": {key: list(value) for key, value in KERNEL_CHOICES.items()},
+            "dropout": [0.2, 0.3, 0.4, 0.5, 0.6],
+            "learning_rate": {
+                "low": 1e-4,
+                "high": 3e-3,
+                "log": True,
+            },
+            "weight_decay": [0.0, 1e-5, 1e-4, 1e-3, 1e-2,],
+            "batch_size": [16, 32, 64, 128],
+            "class_weight": ["none", "balanced"],
+        },
 
-    disp.plot(cmap="Blues", colorbar=False)
-    plt.title("TextCNN - Validation Confusion Matrix")
-    plt.tight_layout()
+        "fixed_params": {
+            "max_length": MAX_LENGTH,
+            "min_freq": MIN_FREQ,
+            "optimizer": "AdamW",
+            "activation": "ReLU",
+            "pooling": "global_max_pooling",
+            "max_epochs": args.epochs,
+        },
+    }
 
-    save_optimized_figure(plt.gcf(), 
-        cm_dir / "textcnn_validation.webp",
-        dpi=160,
-        )
-    plt.close()
+    with open(RESULT_DIR / "textcnn_best.json", "w", encoding="utf-8",) as f:
+        json.dump(evidence, f, ensure_ascii=False, indent=4)
 
-    print("\n========== FINAL RESULT ==========")
-    print("Best params:", global_params)
-    print(f"Best Validation Macro F1: {global_best:.4f}")
-    print(
-        "Best Validation Neutral F1:",
-        round(float(global_eval["neutral_f1"]), 4),
-    )
-    print("Saved results to:", output_root)
+    selected_path = (CONFIG_DIR / "selected_hyperparameters.json")
+    if selected_path.exists():
+        all_selected = json.loads(selected_path.read_text(encoding="utf-8"))
+    else:
+        all_selected = {}
+
+    all_selected["textcnn"] = selected
+
+    selected_path.write_text(json.dumps(all_selected, ensure_ascii=False, indent=4), encoding="utf-8",)
+
+    print("\n========== BEST ==========")
+    print(json.dumps(selected, ensure_ascii=False, indent=4))
+    print( "\nMean Validation Macro F1:",round(float(best_row["mean_macro_f1"]), 4))
     print("Test dataset was NOT used.")
-
+    print("Selected config:",selected_path,)
 
 if __name__ == "__main__":
     main()
