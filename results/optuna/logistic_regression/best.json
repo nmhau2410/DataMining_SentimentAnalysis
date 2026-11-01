@@ -1,0 +1,27 @@
+{
+    "model": "logistic_regression",
+    "optimizer": "Optuna TPE",
+    "study_name": "logistic_regression_optuna_v1",
+    "selection_metric": "train_cv_macro_f1",
+    "cv_folds": 3,
+    "best_cv_macro_f1": 0.7282401451239053,
+    "best_cv_std": 0.006119986725111242,
+    "validation_macro_f1": 0.7777550501333309,
+    "validation_neutral_f1": 0.4840764331210191,
+    "validation_accuracy": 0.903348073278585,
+    "best_params": {
+        "ngram_range": "1,2",
+        "min_df": 1,
+        "max_df": 0.9,
+        "sublinear_tf": true,
+        "max_features": 10000,
+        "C": 42.82453261180168,
+        "class_weight": "balanced"
+    },
+    "best_trial": 60,
+    "completed_trials": 100,
+    "seed": 42,
+    "train_rows": 11424,
+    "validation_rows": 1583,
+    "test_used": false
+}

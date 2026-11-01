@@ -15,7 +15,6 @@ data/processed/
 tools/vncorenlp/
 
 # Model checkpoints
-checkpoints/
 *.pt
 *.pth
 *.bin
@@ -29,3 +28,7 @@ wandb/
 # OS
 .DS_Store
 Thumbs.db
+
+# Optuna local databases
+results/optuna/**/study.db
+results/optuna/**/study.db-*
