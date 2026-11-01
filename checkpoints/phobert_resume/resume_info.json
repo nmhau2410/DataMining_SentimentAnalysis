@@ -1,0 +1,26 @@
+{
+    "model": "vinai/phobert-base-v2",
+    "trial_number": 0,
+    "params": {
+        "learning_rate": 1.1844319751820392e-05,
+        "weight_decay": 0.09507143064099162,
+        "optimizer": "adamw",
+        "scheduler": "linear",
+        "warmup_ratio": 0.12992642186624026,
+        "batch_size": 2,
+        "gradient_accumulation": 8,
+        "max_length": 64,
+        "hidden_dropout_prob": 0.12606056073988442,
+        "attention_probs_dropout_prob": 0.10495128632644757,
+        "classifier_dropout": 0.20118075652474054,
+        "balanced_loss": true,
+        "label_smoothing": 0.020924079097806275,
+        "max_grad_norm": 2.0,
+        "adam_beta1": 0.9285175961393013,
+        "adam_beta2": 0.999,
+        "adam_epsilon": 1e-08
+    },
+    "best_epoch": 2,
+    "target_epochs": 50,
+    "seed": 42
+}
