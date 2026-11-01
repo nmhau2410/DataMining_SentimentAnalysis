@@ -387,6 +387,7 @@ def confirm_top_configs(study, X_train, y_train, X_val, y_val, vocab_size, epoch
                 )
                 continue
 
+            print(f"  Seed {seed} started...", flush=True)
             best = train_config(
                 config=config,
                 X_train=X_train,
@@ -396,6 +397,14 @@ def confirm_top_configs(study, X_train, y_train, X_val, y_val, vocab_size, epoch
                 vocab_size=vocab_size,
                 epochs=epochs,
                 seed=seed,
+            )
+
+            print(
+                f"  Seed {seed} done | "
+                f"Best epoch={best['epoch']} | "
+                f"Macro F1={best['macro_f1']:.4f} | "
+                f"Neutral F1={best['neutral_f1']:.4f}",
+                flush=True,
             )
 
             rows.append({
