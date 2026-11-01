@@ -1,0 +1,27 @@
+{
+    "model": "linear_svm",
+    "optimizer": "Optuna TPE",
+    "study_name": "linear_svm_optuna_v1",
+    "selection_metric": "train_cv_macro_f1",
+    "cv_folds": 3,
+    "best_cv_macro_f1": 0.735372170813862,
+    "best_cv_std": 0.010491830091519598,
+    "validation_macro_f1": 0.7722495430166528,
+    "validation_neutral_f1": 0.4645161290322581,
+    "validation_accuracy": 0.9039797852179406,
+    "best_params": {
+        "ngram_range": "1,2",
+        "min_df": 5,
+        "max_df": 0.9,
+        "sublinear_tf": true,
+        "max_features": 10000,
+        "C": 0.17253062874778335,
+        "class_weight": "balanced"
+    },
+    "best_trial": 85,
+    "completed_trials": 100,
+    "seed": 42,
+    "train_rows": 11424,
+    "validation_rows": 1583,
+    "test_used": false
+}

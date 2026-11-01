@@ -1,0 +1,24 @@
+{
+    "model": "multinomial_nb",
+    "optimizer": "Optuna TPE",
+    "selection_metric": "train_cv_macro_f1",
+    "cv_folds": 3,
+    "best_cv_macro_f1": 0.7122762080755383,
+    "best_cv_std": 0.004734513989324399,
+    "validation_macro_f1": 0.7616150747848618,
+    "validation_neutral_f1": 0.4696969696969697,
+    "validation_accuracy": 0.8894504106127605,
+    "best_params": {
+        "ngram_range": "1,3",
+        "min_df": 2,
+        "max_df": 1.0,
+        "sublinear_tf": true,
+        "max_features": 10000,
+        "alpha": 0.00020964295147387068,
+        "fit_prior": false
+    },
+    "best_trial": 81,
+    "completed_trials": 101,
+    "seed": 42,
+    "test_used": false
+}
