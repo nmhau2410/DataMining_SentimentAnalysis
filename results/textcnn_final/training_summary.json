@@ -1,0 +1,48 @@
+{
+    "model": "TextCNN",
+    "training_data": "train + validation",
+    "train_rows_before_merge": 11424,
+    "validation_rows_before_merge": 1583,
+    "final_train_rows": 13007,
+    "seed": 42,
+    "best_tuning_trial": 101,
+    "hpo_max_epochs": 50,
+    "confirmation_best_epochs": [
+        42,
+        37,
+        36
+    ],
+    "final_epochs": 37,
+    "epoch_rule": "median_best_epoch_from_confirmation",
+    "vocab_size": 2180,
+    "class_weights": [
+        0.719135290540167,
+        8.16509730069052,
+        0.6725091773951709
+    ],
+    "params": {
+        "embedding_dim": 128,
+        "num_filters": 100,
+        "kernel_sizes": [
+            2,
+            3,
+            4
+        ],
+        "dropout": 0.5,
+        "learning_rate": 0.0003323701513476692,
+        "weight_decay": 0.0001,
+        "batch_size": 32,
+        "class_weight": "balanced",
+        "max_length": 64,
+        "min_freq": 2,
+        "optimizer": "AdamW",
+        "epochs": 50,
+        "selection_metric": "mean_validation_macro_f1",
+        "confirmation_seeds": [
+            123,
+            777,
+            2026
+        ]
+    },
+    "test_used": false
+}
