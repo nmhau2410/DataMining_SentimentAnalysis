@@ -1,0 +1,18 @@
+{
+    "model": "TextCNN",
+    "test_samples": 3166,
+    "accuracy": 0.8960833859759949,
+    "macro_precision": 0.7845654294110261,
+    "macro_recall": 0.7590335200171142,
+    "macro_f1": 0.7699042620229936,
+    "best_tuning_trial": 101,
+    "hpo_max_epochs": 50,
+    "confirmation_best_epochs": [
+        42,
+        37,
+        36
+    ],
+    "final_epochs": 37,
+    "checkpoint": "D:\\Learning\\DHNam4\\DataMining\\DataMining_SentimentAnalysis\\checkpoints\\textcnn_final.pt",
+    "test_used": true
+}

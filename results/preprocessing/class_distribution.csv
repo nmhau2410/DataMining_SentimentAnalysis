@@ -1,0 +1,10 @@
+﻿split,label,label_name,count,percent
+train,0,negative,5325,46.6
+train,1,neutral,458,4.01
+train,2,positive,5643,49.39
+validation,0,negative,705,44.54
+validation,1,neutral,73,4.61
+validation,2,positive,805,50.85
+test,0,negative,1409,44.5
+test,1,neutral,167,5.27
+test,2,positive,1590,50.22
