@@ -273,7 +273,6 @@ def train_config(config, X_train, y_train, X_val, y_val, vocab_size, epochs, see
             total_items += len(y)
 
         metrics = evaluate(model, val_loader, criterion)
-
         result = {
             "epoch": epoch,
             "train_loss": total_loss / total_items, **metrics,
