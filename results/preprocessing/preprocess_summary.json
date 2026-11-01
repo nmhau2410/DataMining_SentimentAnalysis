@@ -1,0 +1,18 @@
+{
+    "train_before": 11426,
+    "train_after": 11424,
+    "removed_train_rows": 2,
+    "validation_rows": 1583,
+    "test_rows": 3166,
+    "steps": [
+        "remove_conflicting_labels_train_only",
+        "unicode_nfc_normalization",
+        "whitespace_normalization",
+        "vncorenlp_word_segmentation"
+    ],
+    "removed_stopwords": false,
+    "removed_punctuation": false,
+    "removed_emoji": false,
+    "stemming": false,
+    "lemmatization": false
+}

@@ -1,0 +1,27 @@
+{
+    "textcnn": {
+        "embedding_dim": 64,
+        "num_filters": 128,
+        "kernel_sizes": [
+            3,
+            4,
+            5,
+            6
+        ],
+        "dropout": 0.6,
+        "learning_rate": 0.00024112898115291975,
+        "weight_decay": 0.0,
+        "batch_size": 16,
+        "class_weight": "balanced",
+        "max_length": 64,
+        "min_freq": 2,
+        "optimizer": "AdamW",
+        "epochs": 50,
+        "selection_metric": "mean_validation_macro_f1",
+        "confirmation_seeds": [
+            123,
+            777,
+            2026
+        ]
+    }
+}
