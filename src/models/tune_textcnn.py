@@ -60,10 +60,6 @@ def load_data(smoke=False):
 
     train = train.reset_index(drop=True)
     val = val.reset_index(drop=True)
-
-    print("Train:", len(train))
-    print("Validation:", len(val))
-
     return train, val
 
 
@@ -597,7 +593,7 @@ def main():
     evidence = {
         "model": "TextCNN",
         "search_method": "Optuna TPE + Hyperband",
-        "search_trials": len(study.trials),
+        "search_trials": sum(trial.state in {TrialState.COMPLETE, TrialState.PRUNED} for trial in study.trials),
         "best_trial": best_trial_number,
         "selection_metric": "mean_validation_macro_f1",
         "tie_breakers": ["mean_validation_neutral_f1", "lower_std_macro_f1"],
