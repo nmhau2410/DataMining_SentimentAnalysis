@@ -1,0 +1,7 @@
+{
+    "last_epoch": 50,
+    "best_epoch": 25,
+    "best_macro_f1": 0.8801691678949976,
+    "target_epochs": 50,
+    "completed": true
+}
