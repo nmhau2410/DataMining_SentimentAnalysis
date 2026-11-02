@@ -1,0 +1,21 @@
+{
+    "model": "logistic_regression",
+    "train_rows": 11424,
+    "validation_rows": 1583,
+    "final_train_rows": 13007,
+    "test_rows": 3166,
+    "accuracy": 0.885028427037271,
+    "precision_macro": 0.7390052566943751,
+    "recall_macro": 0.7386797580257173,
+    "f1_macro": 0.7386241173389209,
+    "f1_neutral": 0.39156626506024095,
+    "best_params": {
+        "ngram_range": "1,2",
+        "min_df": 1,
+        "max_df": 0.9,
+        "sublinear_tf": true,
+        "max_features": 10000,
+        "C": 42.82453261180168,
+        "class_weight": "balanced"
+    }
+}

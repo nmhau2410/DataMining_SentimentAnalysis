@@ -1,0 +1,21 @@
+{
+    "model": "multinomial_nb",
+    "train_rows": 11424,
+    "validation_rows": 1583,
+    "final_train_rows": 13007,
+    "test_rows": 3166,
+    "accuracy": 0.8641819330385344,
+    "precision_macro": 0.7331310098686942,
+    "recall_macro": 0.7022938130416815,
+    "f1_macro": 0.7124680583830211,
+    "f1_neutral": 0.3611111111111111,
+    "best_params": {
+        "ngram_range": "1,3",
+        "min_df": 2,
+        "max_df": 1.0,
+        "sublinear_tf": true,
+        "max_features": 10000,
+        "alpha": 0.00020964295147387068,
+        "fit_prior": false
+    }
+}
