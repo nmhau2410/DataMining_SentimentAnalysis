@@ -1,0 +1,22 @@
+{
+    "model": "linear_svm",
+    "best_trial": 85,
+    "train_rows": 11424,
+    "validation_rows": 1583,
+    "final_train_rows": 13007,
+    "test_rows": 3166,
+    "accuracy": 0.8834491471888819,
+    "precision_macro": 0.7276098070116642,
+    "recall_macro": 0.7255040205041484,
+    "f1_macro": 0.726081151950328,
+    "f1_neutral": 0.35365853658536583,
+    "best_params": {
+        "ngram_range": "1,2",
+        "min_df": 5,
+        "max_df": 0.9,
+        "sublinear_tf": true,
+        "max_features": 10000,
+        "C": 0.17253062874778335,
+        "class_weight": "balanced"
+    }
+}
