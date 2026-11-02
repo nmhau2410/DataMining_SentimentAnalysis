@@ -1,17 +1,16 @@
 {
     "textcnn": {
-        "embedding_dim": 64,
-        "num_filters": 128,
+        "embedding_dim": 128,
+        "num_filters": 100,
         "kernel_sizes": [
+            2,
             3,
-            4,
-            5,
-            6
+            4
         ],
-        "dropout": 0.6,
-        "learning_rate": 0.00024112898115291975,
-        "weight_decay": 0.0,
-        "batch_size": 16,
+        "dropout": 0.5,
+        "learning_rate": 0.0003323701513476692,
+        "weight_decay": 0.0001,
+        "batch_size": 32,
         "class_weight": "balanced",
         "max_length": 64,
         "min_freq": 2,

@@ -1,0 +1,129 @@
+{
+    "model": "TextCNN",
+    "search_method": "Optuna TPE + Hyperband",
+    "search_trials": 120,
+    "best_trial": 101,
+    "selection_metric": "mean_validation_macro_f1",
+    "tie_breakers": [
+        "mean_validation_neutral_f1",
+        "lower_std_macro_f1"
+    ],
+    "mean_validation_macro_f1": 0.8124481778428464,
+    "std_validation_macro_f1": 0.011125507582279991,
+    "mean_validation_neutral_f1": 0.5672041677003224,
+    "best_params": {
+        "embedding_dim": 128,
+        "num_filters": 100,
+        "kernel_sizes": [
+            2,
+            3,
+            4
+        ],
+        "dropout": 0.5,
+        "learning_rate": 0.0003323701513476692,
+        "weight_decay": 0.0001,
+        "batch_size": 32,
+        "class_weight": "balanced",
+        "max_length": 64,
+        "min_freq": 2,
+        "optimizer": "AdamW",
+        "epochs": 50,
+        "selection_metric": "mean_validation_macro_f1",
+        "confirmation_seeds": [
+            123,
+            777,
+            2026
+        ]
+    },
+    "test_used": false,
+    "search_space": {
+        "embedding_dim": [
+            64,
+            128,
+            200,
+            300
+        ],
+        "num_filters": [
+            64,
+            100,
+            128,
+            200
+        ],
+        "kernel_sizes": {
+            "123": [
+                1,
+                2,
+                3
+            ],
+            "234": [
+                2,
+                3,
+                4
+            ],
+            "345": [
+                3,
+                4,
+                5
+            ],
+            "456": [
+                4,
+                5,
+                6
+            ],
+            "567": [
+                5,
+                6,
+                7
+            ],
+            "2345": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "3456": [
+                3,
+                4,
+                5,
+                6
+            ]
+        },
+        "dropout": [
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6
+        ],
+        "learning_rate": {
+            "low": 0.0001,
+            "high": 0.003,
+            "log": true
+        },
+        "weight_decay": [
+            0.0,
+            1e-05,
+            0.0001,
+            0.001,
+            0.01
+        ],
+        "batch_size": [
+            16,
+            32,
+            64,
+            128
+        ],
+        "class_weight": [
+            "none",
+            "balanced"
+        ]
+    },
+    "fixed_params": {
+        "max_length": 64,
+        "min_freq": 2,
+        "optimizer": "AdamW",
+        "activation": "ReLU",
+        "pooling": "global_max_pooling",
+        "max_epochs": 50
+    }
+}
