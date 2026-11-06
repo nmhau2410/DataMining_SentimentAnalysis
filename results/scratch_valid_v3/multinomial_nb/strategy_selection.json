@@ -1,0 +1,12 @@
+{
+  "model": "multinomial_nb",
+  "method": "hybrid_50",
+  "seeds": [
+    42,
+    123,
+    777
+  ],
+  "selection_metric": "mean_validation_macro_f1",
+  "test_used": false,
+  "text_column": "text_normalized"
+}

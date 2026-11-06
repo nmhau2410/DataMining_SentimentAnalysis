@@ -1,0 +1,11 @@
+{
+  "method": "over_50",
+  "arch": "compact",
+  "selection_metric": "mean_validation_macro_f1",
+  "seeds": [
+    42
+  ],
+  "vocab_size": 8000,
+  "text_column": "text_normalized",
+  "test_used": false
+}

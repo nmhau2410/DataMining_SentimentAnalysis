@@ -1,0 +1,22 @@
+{
+  "model": "logistic_regression",
+  "method": "over_50",
+  "best_params": {
+    "ngram_max": 2,
+    "min_df": 3,
+    "max_df": 1.0,
+    "max_features": 30000,
+    "sublinear_tf": false,
+    "C": 0.663068803900501,
+    "alpha": 1.0,
+    "fit_prior": true
+  },
+  "validation_macro_f1": 0.7835615019141962,
+  "validation_neutral_f1": 0.49645390070921985,
+  "selection_data": "data/processed/validation.csv",
+  "train_data": "data/processed/train.csv",
+  "best_trial": 96,
+  "completed_trials": 100,
+  "test_used": false,
+  "text_column": "text_normalized"
+}
