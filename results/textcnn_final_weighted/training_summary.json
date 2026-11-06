@@ -1,0 +1,33 @@
+{
+    "trial": 102,
+    "strategy": "weighted_ce",
+    "seed": 42,
+    "train_samples": 13007,
+    "negative": 6029,
+    "neutral": 531,
+    "positive": 6447,
+    "vocab_size": 2180,
+    "max_length": 64,
+    "min_freq": 2,
+    "final_epochs": 45,
+    "embedding_dim": 200,
+    "num_filters": 64,
+    "kernel_sizes": [
+        4,
+        5,
+        6
+    ],
+    "dropout": 0.6,
+    "lr": 0.00033463666602302956,
+    "weight_decay": 0.01,
+    "batch_size": 128,
+    "class_weights": [
+        0.7191352844238281,
+        8.1650972366333,
+        0.6725091934204102
+    ],
+    "optimizer": "AdamW",
+    "loss": "WeightedCrossEntropy",
+    "checkpoint": "D:\\Learning\\DHNam4\\DataMining\\DataMining_SentimentAnalysis\\checkpoints\\textcnn_final_weighted.pt",
+    "test_used": false
+}

@@ -6,35 +6,29 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
-from torch import nn
+import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data" / "processed"
-CONFIG_PATH = ROOT / "configs" / "selected_hyperparameters.json"
-TUNING_DIR = ROOT / "results" / "textcnn_tuning_v2"
-BEST_INFO_PATH = TUNING_DIR / "textcnn_best.json"
-CONFIRM_PATH = TUNING_DIR / "confirmation_trials.csv"
-RESULT_DIR = ROOT / "results" / "textcnn_final"
-CHECKPOINT_PATH = ROOT / "checkpoints" / "textcnn_final.pt"
+CONFIG_PATH = ROOT / "results" / "textcnn_tuning_weighted" / "selected_config.json"
+RESULT_DIR = ROOT / "results" / "textcnn_final_weighted"
+CHECKPOINT_DIR = ROOT / "checkpoints"
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 SEED = 42
-
 
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
     if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
 
-def build_vocab(texts, min_freq):
+def build_vocab(texts, min_freq=2):
     counter = Counter()
 
     for text in texts:
@@ -42,23 +36,38 @@ def build_vocab(texts, min_freq):
 
     vocab = {"<PAD>": 0, "<UNK>": 1}
 
-    for word in sorted(counter):
-        if counter[word] >= min_freq:
-            vocab[word] = len(vocab)
+    for token, count in counter.items():
+        if count >= min_freq:
+            vocab[token] = len(vocab)
 
     return vocab
 
 
-def encode_texts(texts, vocab, max_length):
-    encoded = []
+def encode_text(text, vocab, max_length):
+    tokens = str(text).lower().split()[:max_length]
+    ids = [vocab.get(token, vocab["<UNK>"]) for token in tokens]
 
-    for text in texts:
-        tokens = str(text).lower().split()[:max_length]
-        ids = [vocab.get(token, vocab["<UNK>"]) for token in tokens]
+    if len(ids) < max_length:
         ids += [vocab["<PAD>"]] * (max_length - len(ids))
-        encoded.append(ids)
 
-    return torch.tensor(encoded, dtype=torch.long)
+    return ids
+
+
+def encode_data(df, vocab, max_length):
+    x = [encode_text(text, vocab, max_length) for text in df["text_segmented"]]
+    y = df["sentiment"].astype(int).tolist()
+
+    x = torch.tensor(x, dtype=torch.long)
+    y = torch.tensor(y, dtype=torch.long)
+
+    return TensorDataset(x, y)
+
+
+def get_class_weights(labels, device):
+    counts = np.bincount(labels, minlength=3).astype(np.float64)
+    weights = len(labels) / (3 * counts)
+
+    return torch.tensor(weights, dtype=torch.float32, device=device)
 
 
 class TextCNN(nn.Module):
@@ -75,129 +84,105 @@ class TextCNN(nn.Module):
 
     def forward(self, x):
         x = self.embedding(x)
-        x = x.transpose(1, 2)
+        x = x.permute(0, 2, 1)
 
-        features = []
+        conv_outs = []
 
         for conv in self.convs:
-            h = torch.relu(conv(x))
-            features.append(torch.max(h, dim=2).values)
+            out = torch.relu(conv(x))
+            out = torch.max(out, dim=2).values
+            conv_outs.append(out)
 
-        x = torch.cat(features, dim=1)
+        x = torch.cat(conv_outs, dim=1)
         x = self.dropout(x)
 
         return self.fc(x)
 
 
-def load_selected_config():
-    data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-
-    if "textcnn" not in data:
-        raise KeyError("Không tìm thấy config TextCNN đã chọn.")
-
-    return data["textcnn"]
-
-
-def get_tuning_info():
-    best_info = json.loads(BEST_INFO_PATH.read_text(encoding="utf-8"))
-    best_trial = int(best_info["best_trial"])
-
-    confirmation = pd.read_csv(CONFIRM_PATH)
-    rows = confirmation[confirmation["trial"] == best_trial]
-
-    if rows.empty:
-        raise ValueError(f"Không tìm thấy confirmation của trial {best_trial}.")
-
-    best_epochs = rows["best_epoch"].to_numpy()
-    median_best_epoch = int(np.median(best_epochs))
-
-    return best_trial, best_epochs.tolist(), median_best_epoch
-
-
-def make_criterion(labels, class_weight):
-    if class_weight == "none":
-        return nn.CrossEntropyLoss(), None
-
-    counts = np.bincount(labels.numpy(), minlength=3)
-    weights = len(labels) / (3 * np.maximum(counts, 1))
-    weight_tensor = torch.tensor(weights, dtype=torch.float32, device=DEVICE)
-
-    return nn.CrossEntropyLoss(weight=weight_tensor), weights.tolist()
-
-
 def main():
-    config = load_selected_config()
-    best_trial, confirmation_epochs, final_epochs = get_tuning_info()
-
     set_seed(SEED)
 
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
+    CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    print("Device:", device)
+
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        selected = json.load(f)
+
+    params = selected["params"]
+    max_length = selected["fixed"]["max_length"]
+    min_freq = selected["fixed"]["min_freq"]
+    final_epochs = selected["final_epochs"]
+
+    print("Selected trial:", selected["trial"])
+    print("Strategy:", selected["strategy"])
+    print("Final epochs:", final_epochs)
+    print("Params:", params)
+
     train = pd.read_csv(DATA_DIR / "train.csv")
-    val = pd.read_csv(DATA_DIR / "validation.csv")
+    valid = pd.read_csv(DATA_DIR / "validation.csv")
 
-    final_train = pd.concat([train, val], ignore_index=True)
+    final_train = pd.concat([train, valid], ignore_index=True)
 
-    texts = final_train["text_segmented"].fillna("").astype(str)
-    labels = torch.tensor(final_train["sentiment"].to_numpy(), dtype=torch.long)
+    print("\nFinal train samples:", len(final_train))
+    print(final_train["sentiment"].value_counts().sort_index())
 
-    vocab = build_vocab(texts, config["min_freq"])
-    X = encode_texts(texts, vocab, config["max_length"])
+    vocab = build_vocab(final_train["text_segmented"], min_freq)
+
+    print("Vocabulary:", len(vocab))
+
+    dataset = encode_data(final_train, vocab, max_length)
+    labels = final_train["sentiment"].astype(int).to_numpy()
 
     generator = torch.Generator()
     generator.manual_seed(SEED)
 
     loader = DataLoader(
-        TensorDataset(X, labels),
-        batch_size=config["batch_size"],
+        dataset,
+        batch_size=params["batch_size"],
         shuffle=True,
-        generator=generator,
-        num_workers=0,
+        generator=generator
     )
+
+    class_weights = get_class_weights(labels, device)
+
+    print("Class weights:", class_weights.cpu().numpy())
 
     model = TextCNN(
         vocab_size=len(vocab),
-        embedding_dim=config["embedding_dim"],
-        num_filters=config["num_filters"],
-        kernel_sizes=tuple(config["kernel_sizes"]),
-        dropout=config["dropout"],
-    ).to(DEVICE)
-
-    if config["optimizer"] != "AdamW":
-        raise ValueError("Final TextCNN hiện chỉ hỗ trợ AdamW.")
+        embedding_dim=params["embedding_dim"],
+        num_filters=params["num_filters"],
+        kernel_sizes=params["kernel_sizes"],
+        dropout=params["dropout"]
+    ).to(device)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
-        lr=config["learning_rate"],
-        weight_decay=config["weight_decay"],
+        lr=params["lr"],
+        weight_decay=params["weight_decay"]
     )
 
-    criterion, class_weights = make_criterion(labels, config["class_weight"])
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
+
     history = []
 
-    print("Device:", DEVICE)
-    print("Original Train:", len(train))
-    print("Original Validation:", len(val))
-    print("Final Train:", len(final_train))
-    print("Vocabulary:", len(vocab))
-    print("Best tuning trial:", best_trial)
-    print("HPO max epochs:", config["epochs"])
-    print("Confirmation best epochs:", confirmation_epochs)
-    print("Final epochs:", final_epochs)
-    print("Class weights:", class_weights)
-
-    print("\nConfig:")
-    print(json.dumps(config, ensure_ascii=False, indent=4))
+    print("\nTraining final model...")
 
     for epoch in range(1, final_epochs + 1):
         model.train()
 
-        total_loss = 0.0
-        total_items = 0
+        total_loss = 0
+        total_samples = 0
+        correct = 0
 
         for x, y in loader:
-            x = x.to(DEVICE)
-            y = y.to(DEVICE)
+            x = x.to(device)
+            y = y.to(device)
 
-            optimizer.zero_grad(set_to_none=True)
+            optimizer.zero_grad()
 
             logits = model(x)
             loss = criterion(logits, y)
@@ -205,67 +190,95 @@ def main():
             loss.backward()
             optimizer.step()
 
-            total_loss += loss.item() * len(y)
-            total_items += len(y)
+            pred = torch.argmax(logits, dim=1)
 
-        train_loss = total_loss / total_items
+            total_loss += loss.item() * y.size(0)
+            total_samples += y.size(0)
+            correct += (pred == y).sum().item()
+
+        train_loss = total_loss / total_samples
+        train_accuracy = correct / total_samples
 
         history.append({
             "epoch": epoch,
             "train_loss": train_loss,
+            "train_accuracy": train_accuracy
         })
 
-        print(f"Epoch {epoch:02d}/{final_epochs} | Train Loss={train_loss:.4f}", flush=True)
+        print(
+            f"Epoch {epoch:02d}/{final_epochs} | "
+            f"Loss {train_loss:.4f} | "
+            f"Accuracy {train_accuracy:.4f}"
+        )
 
-    RESULT_DIR.mkdir(parents=True, exist_ok=True)
-    CHECKPOINT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = CHECKPOINT_DIR / "textcnn_final_weighted.pt"
+
+    torch.save({
+        "model_state_dict": model.state_dict(),
+        "vocab": vocab,
+        "params": params,
+        "max_length": max_length,
+        "min_freq": min_freq,
+        "final_epochs": final_epochs,
+        "strategy": "weighted_ce",
+        "class_weights": class_weights.cpu().tolist(),
+        "seed": SEED,
+        "trial": selected["trial"]
+    }, checkpoint_path)
 
     pd.DataFrame(history).to_csv(
         RESULT_DIR / "training_history.csv",
         index=False,
-        encoding="utf-8-sig",
+        encoding="utf-8-sig"
     )
 
+    counts = final_train["sentiment"].value_counts().sort_index()
+
     summary = {
-        "model": "TextCNN",
-        "training_data": "train + validation",
-        "train_rows_before_merge": len(train),
-        "validation_rows_before_merge": len(val),
-        "final_train_rows": len(final_train),
+        "trial": selected["trial"],
+        "strategy": "weighted_ce",
         "seed": SEED,
-        "best_tuning_trial": best_trial,
-        "hpo_max_epochs": config["epochs"],
-        "confirmation_best_epochs": confirmation_epochs,
-        "final_epochs": final_epochs,
-        "epoch_rule": "median_best_epoch_from_confirmation",
+        "train_samples": len(final_train),
+        "negative": int(counts.get(0, 0)),
+        "neutral": int(counts.get(1, 0)),
+        "positive": int(counts.get(2, 0)),
         "vocab_size": len(vocab),
-        "class_weights": class_weights,
-        "params": config,
-        "test_used": False,
+        "max_length": max_length,
+        "min_freq": min_freq,
+        "final_epochs": final_epochs,
+        "embedding_dim": params["embedding_dim"],
+        "num_filters": params["num_filters"],
+        "kernel_sizes": params["kernel_sizes"],
+        "dropout": params["dropout"],
+        "lr": params["lr"],
+        "weight_decay": params["weight_decay"],
+        "batch_size": params["batch_size"],
+        "class_weights": class_weights.cpu().tolist(),
+        "optimizer": "AdamW",
+        "loss": "WeightedCrossEntropy",
+        "checkpoint": str(checkpoint_path),
+        "test_used": False
     }
 
     with open(RESULT_DIR / "training_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=4)
 
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "vocab": vocab,
-            "params": config,
-            "seed": SEED,
-            "best_tuning_trial": best_trial,
-            "hpo_max_epochs": config["epochs"],
-            "confirmation_best_epochs": confirmation_epochs,
-            "final_epochs": final_epochs,
-            "train_rows": len(final_train),
-        },
-        CHECKPOINT_PATH,
-    )
+    print("\n" + "=" * 70)
+    print("FINAL TRAINING COMPLETE")
+    print("=" * 70)
 
-    print("\n===== COMPLETED =====")
-    print("Checkpoint:", CHECKPOINT_PATH)
-    print("Results:", RESULT_DIR)
-    print("Test dataset was NOT used.")
+    print("Trial:", selected["trial"])
+    print("Strategy: weighted_ce")
+    print("Train + Validation:", len(final_train))
+    print("Vocabulary:", len(vocab))
+    print("Final epochs:", final_epochs)
+    print("Checkpoint:", checkpoint_path)
+    print("Test used: False")
+
+    print("\nSaved:")
+    print(RESULT_DIR / "training_history.csv")
+    print(RESULT_DIR / "training_summary.json")
+    print(checkpoint_path)
 
 
 if __name__ == "__main__":
