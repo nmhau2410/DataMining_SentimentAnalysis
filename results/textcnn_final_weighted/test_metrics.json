@@ -1,0 +1,21 @@
+[
+    {
+        "model":"TextCNN",
+        "trial":102,
+        "strategy":"weighted_ce",
+        "test_samples":3166,
+        "accuracy":0.8982943778,
+        "macro_precision":0.7773285,
+        "macro_recall":0.7640468232,
+        "macro_f1":0.7699545613,
+        "negative_precision":0.8975576662,
+        "negative_recall":0.9389638041,
+        "negative_f1":0.9177939646,
+        "neutral_precision":0.4966442953,
+        "neutral_recall":0.4431137725,
+        "neutral_f1":0.4683544304,
+        "positive_precision":0.9377835386,
+        "positive_recall":0.9100628931,
+        "positive_f1":0.9237152889
+    }
+]

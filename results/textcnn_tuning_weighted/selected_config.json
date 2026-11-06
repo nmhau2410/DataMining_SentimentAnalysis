@@ -1,0 +1,40 @@
+{
+    "trial": 102,
+    "strategy": "weighted_ce",
+    "mean_macro_f1": 0.8162147503268139,
+    "std_macro_f1": 0.010161119559887527,
+    "mean_neutral_f1": 0.5847635278076878,
+    "mean_accuracy": 0.9172457359444094,
+    "confirmation_seeds": [
+        123,
+        777,
+        2026
+    ],
+    "confirmation_best_epochs": [
+        45,
+        47,
+        43
+    ],
+    "final_epochs": 45,
+    "params": {
+        "embedding_dim": 200,
+        "num_filters": 64,
+        "kernel_sizes": [
+            4,
+            5,
+            6
+        ],
+        "dropout": 0.6,
+        "lr": 0.00033463666602302956,
+        "weight_decay": 0.01,
+        "batch_size": 128
+    },
+    "fixed": {
+        "max_length": 64,
+        "min_freq": 2,
+        "optimizer": "AdamW",
+        "loss": "WeightedCrossEntropy",
+        "max_epochs": 50
+    },
+    "test_used": false
+}
