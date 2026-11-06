@@ -1,0 +1,22 @@
+{
+  "model": "multinomial_nb",
+  "method": "hybrid_50",
+  "best_params": {
+    "ngram_max": 3,
+    "min_df": 3,
+    "max_df": 0.9,
+    "max_features": 20000,
+    "sublinear_tf": true,
+    "C": 1.0,
+    "alpha": 0.0063824333075536135,
+    "fit_prior": false
+  },
+  "validation_macro_f1": 0.7745050500976403,
+  "validation_neutral_f1": 0.5238095238095238,
+  "selection_data": "data/processed/validation.csv",
+  "train_data": "data/processed/train.csv",
+  "best_trial": 57,
+  "completed_trials": 60,
+  "test_used": false,
+  "text_column": "text_normalized"
+}

@@ -1,0 +1,12 @@
+{
+  "model": "linear_svm",
+  "method": "balanced_weight",
+  "seeds": [
+    42,
+    123,
+    777
+  ],
+  "selection_metric": "mean_validation_macro_f1",
+  "test_used": false,
+  "text_column": "text_normalized"
+}

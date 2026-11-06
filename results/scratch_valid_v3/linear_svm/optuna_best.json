@@ -1,0 +1,22 @@
+{
+  "model": "linear_svm",
+  "method": "balanced_weight",
+  "best_params": {
+    "ngram_max": 2,
+    "min_df": 1,
+    "max_df": 0.9,
+    "max_features": 10000,
+    "sublinear_tf": false,
+    "C": 0.6763118483035686,
+    "alpha": 1.0,
+    "fit_prior": true
+  },
+  "validation_macro_f1": 0.7825959686714112,
+  "validation_neutral_f1": 0.48120300751879697,
+  "selection_data": "data/processed/validation.csv",
+  "train_data": "data/processed/train.csv",
+  "best_trial": 77,
+  "completed_trials": 100,
+  "test_used": false,
+  "text_column": "text_normalized"
+}
