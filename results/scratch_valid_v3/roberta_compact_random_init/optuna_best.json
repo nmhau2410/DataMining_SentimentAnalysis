@@ -1,0 +1,23 @@
+{
+  "method": "over_50",
+  "arch": "compact",
+  "best_params": {
+    "learning_rate": 0.0007054270142609774,
+    "weight_decay": 0.08948273504276488,
+    "batch_size": 8,
+    "grad_accumulation": 8,
+    "max_length": 128,
+    "dropout": 0.13918833167339734,
+    "warmup_ratio": 0.042140176453107116,
+    "focal_gamma": 2.0
+  },
+  "vocab_size": 8000,
+  "best_epoch": 22,
+  "best_validation_macro_f1": 0.8086803967932662,
+  "best_trial": 4,
+  "tuning_split": "official validation.csv (train.csv ONLY for fitting)",
+  "completed_trials": 20,
+  "pretrained": false,
+  "text_column": "text_normalized",
+  "test_used": false
+}
