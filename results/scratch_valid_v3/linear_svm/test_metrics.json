@@ -1,0 +1,36 @@
+{
+  "accuracy": 0.8963992419456728,
+  "macro_precision": 0.7680432116046831,
+  "macro_recall": 0.7398355326342196,
+  "macro_f1": 0.751093146892289,
+  "neutral_precision": 0.4765625,
+  "neutral_recall": 0.3652694610778443,
+  "neutral_f1": 0.4135593220338983,
+  "per_class_f1": {
+    "Negative": 0.9161512027491409,
+    "Neutral": 0.4135593220338983,
+    "Positive": 0.923568915893828
+  },
+  "support": {
+    "Negative": 1409,
+    "Neutral": 167,
+    "Positive": 1590
+  },
+  "model": "linear_svm",
+  "imbalance_method": "balanced_weight",
+  "best_params": {
+    "ngram_max": 2,
+    "min_df": 1,
+    "max_df": 0.9,
+    "max_features": 10000,
+    "sublinear_tf": false,
+    "C": 0.6763118483035686,
+    "alpha": 1.0,
+    "fit_prior": true
+  },
+  "trainval_rows": 13007,
+  "text_column": "text_normalized",
+  "weights_pretrained": false,
+  "checkpoint": "D:\\Nam4\\DataMining_SentimentAnalysis\\checkpoints\\scratch_valid_v3\\linear_svm.joblib",
+  "test_used_for_selection": false
+}
