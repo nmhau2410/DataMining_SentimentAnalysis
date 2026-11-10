@@ -1,0 +1,36 @@
+{
+  "accuracy": 0.8825015792798484,
+  "macro_precision": 0.7398602710742749,
+  "macro_recall": 0.7321821319798637,
+  "macro_f1": 0.7349816192870243,
+  "neutral_precision": 0.40522875816993464,
+  "neutral_recall": 0.3712574850299401,
+  "neutral_f1": 0.3875,
+  "per_class_f1": {
+    "Negative": 0.9035117627003069,
+    "Neutral": 0.3875,
+    "Positive": 0.9139330951607665
+  },
+  "support": {
+    "Negative": 1409,
+    "Neutral": 167,
+    "Positive": 1590
+  },
+  "model": "logistic_regression",
+  "imbalance_method": "over_50",
+  "best_params": {
+    "ngram_max": 2,
+    "min_df": 3,
+    "max_df": 1.0,
+    "max_features": 30000,
+    "sublinear_tf": false,
+    "C": 0.663068803900501,
+    "alpha": 1.0,
+    "fit_prior": true
+  },
+  "trainval_rows": 13007,
+  "text_column": "text_normalized",
+  "weights_pretrained": false,
+  "checkpoint": "D:\\Nam4\\DataMining_SentimentAnalysis\\checkpoints\\scratch_valid_v3\\logistic_regression.joblib",
+  "test_used_for_selection": false
+}
