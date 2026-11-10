@@ -1,0 +1,36 @@
+{
+  "accuracy": 0.861339229311434,
+  "macro_precision": 0.7274728294533716,
+  "macro_recall": 0.6826780307911301,
+  "macro_f1": 0.6954432771306642,
+  "neutral_precision": 0.42424242424242425,
+  "neutral_recall": 0.25149700598802394,
+  "neutral_f1": 0.3157894736842105,
+  "per_class_f1": {
+    "Negative": 0.8791570628910109,
+    "Neutral": 0.3157894736842105,
+    "Positive": 0.8913832948167713
+  },
+  "support": {
+    "Negative": 1409,
+    "Neutral": 167,
+    "Positive": 1590
+  },
+  "model": "multinomial_nb",
+  "imbalance_method": "hybrid_50",
+  "best_params": {
+    "ngram_max": 3,
+    "min_df": 3,
+    "max_df": 0.9,
+    "max_features": 20000,
+    "sublinear_tf": true,
+    "C": 1.0,
+    "alpha": 0.0063824333075536135,
+    "fit_prior": false
+  },
+  "trainval_rows": 13007,
+  "text_column": "text_normalized",
+  "weights_pretrained": false,
+  "checkpoint": "D:\\Nam4\\DataMining_SentimentAnalysis\\checkpoints\\scratch_valid_v3\\multinomial_nb.joblib",
+  "test_used_for_selection": false
+}
