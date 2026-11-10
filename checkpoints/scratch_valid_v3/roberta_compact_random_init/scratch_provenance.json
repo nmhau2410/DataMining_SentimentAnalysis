@@ -1,0 +1,23 @@
+{
+  "pretrained_weights": false,
+  "pretrained_tokenizer": false,
+  "weights_initialization": "RobertaForSequenceClassification(RobertaConfig(...))",
+  "tokenizer_training_data": "train+validation only",
+  "architecture": "compact",
+  "method": "over_50",
+  "model_params": 3840515,
+  "tokenizer_vocab_size": 2269,
+  "max_length": 128,
+  "epochs": 22,
+  "optimizer": "AdamW",
+  "experiment_params": {
+    "learning_rate": 0.0007054270142609774,
+    "weight_decay": 0.08948273504276488,
+    "batch_size": 8,
+    "grad_accumulation": 8,
+    "max_length": 128,
+    "dropout": 0.13918833167339734,
+    "warmup_ratio": 0.042140176453107116,
+    "focal_gamma": 2.0
+  }
+}
