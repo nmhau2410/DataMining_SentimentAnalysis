@@ -1,0 +1,39 @@
+{
+  "accuracy": 0.8843967150979154,
+  "macro_precision": 0.778151985361152,
+  "macro_recall": 0.7222909145976385,
+  "macro_f1": 0.7417186217762888,
+  "neutral_precision": 0.5436893203883495,
+  "neutral_recall": 0.33532934131736525,
+  "neutral_f1": 0.4148148148148148,
+  "per_class_f1": {
+    "Negative": 0.9018256975542542,
+    "Neutral": 0.4148148148148148,
+    "Positive": 0.9085153529597974
+  },
+  "support": {
+    "Negative": 1409,
+    "Neutral": 167,
+    "Positive": 1590
+  },
+  "model": "Compact RoBERTa with random weights",
+  "strategy": "over_50",
+  "params": {
+    "learning_rate": 0.0007054270142609774,
+    "weight_decay": 0.08948273504276488,
+    "batch_size": 8,
+    "grad_accumulation": 8,
+    "max_length": 128,
+    "dropout": 0.13918833167339734,
+    "warmup_ratio": 0.042140176453107116,
+    "focal_gamma": 2.0
+  },
+  "final_epochs": 22,
+  "train_val_rows": 13007,
+  "text_column": "text_normalized",
+  "random_initialized_weights": true,
+  "scratch_BPE_tokenizer": true,
+  "checkpoint": "D:\\Github\\DataMining_SentimentAnalysis\\checkpoints\\scratch_valid_v3\\roberta_compact_random_init",
+  "test_used_for_tuning": false,
+  "test_used_for_selection": false
+}
