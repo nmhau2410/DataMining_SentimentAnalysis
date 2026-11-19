@@ -1,30 +1,50 @@
-function testSentiment() {
-    const text = document.getElementById('inputText').value.trim();
+async function testSentiment() {
+    const inputEl = document.getElementById('inputText');
+    const text = inputEl.value.trim();
     if (!text) {
         alert('Vui lòng nhập câu phản hồi.');
+        inputEl.focus();
         return;
     }
-    const selectedRadio = document.querySelector('input[name="algorithm"]:checked').value;
-    document.getElementById('resAlgo').innerText = selectedRadio;
-    const lower = text.toLowerCase();
-    let label = 'Tích cực (Positive)';
-    let badgeClass = 'badge-pos';
-    let conf = '96.5%';
-    let probs = 'Tích cực: 96.5% | Trung tính: 2.3% | Tiêu cực: 1.2%';
-    if (lower.includes('dở') || lower.includes('tệ') || lower.includes('chán') || lower.includes('khó hiểu') || lower.includes('sơ sài') || lower.includes('buồn ngủ')) {
-        label = 'Tiêu cực (Negative)';
-        badgeClass = 'badge-neg';
-        conf = '94.8%';
-        probs = 'Tích cực: 1.5% | Trung tính: 3.7% | Tiêu cực: 94.8%';
-    } else if (lower.includes('tín chỉ') || lower.includes('lịch') || lower.includes('phòng') || lower.includes('thứ')) {
-        label = 'Trung tính (Neutral)';
-        badgeClass = 'badge-neu';
-        conf = '88.0%';
-        probs = 'Tích cực: 5.2% | Trung tính: 88.0% | Tiêu cực: 6.8%';
+    const radioEl = document.querySelector('input[name="algorithm"]:checked');
+    if (!radioEl) {
+        alert('Vui lòng chọn một thuật toán.');
+        return;
     }
-    const resLabelEl = document.getElementById('resLabel');
-    resLabelEl.innerText = label;
-    resLabelEl.className = 'result-value ' + badgeClass;
-    document.getElementById('resConf').innerText = conf;
-    document.getElementById('resProbs').innerText = probs;
+    const selectedRadio = radioEl.value;
+    const btn = document.querySelector('button');
+    const originalBtnText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Đang phân tích';
+    const resultBox = document.getElementById('resultBox');
+    resultBox.style.opacity = '0.4';
+    try {
+        const response = await fetch('/api/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: text,
+                algorithm: selectedRadio
+            })
+        });
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || ('Lỗi máy chủ HTTP ' + response.status));
+        }
+        const data = await response.json();
+        document.getElementById('resAlgo').innerText = data.algorithm;
+        const resLabelEl = document.getElementById('resLabel');
+        resLabelEl.innerText = data.label;
+        resLabelEl.className = 'result-value ' + data.class_name;
+        document.getElementById('resConf').innerText = data.confidence;
+        document.getElementById('resProbs').innerText = data.probs;
+    } catch (err) {
+        alert('Không thể kết nối: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalBtnText;
+        resultBox.style.opacity = '1';
+    }
 }
