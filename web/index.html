@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm Thử Phân Loại Cảm Xúc</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Phân Loại Cảm Xúc Phản Hồi Sinh Viên</h1>
+        <p class="subtitle">Giao diện thử nghiệm mô hình</p>
+    <div class="section-label">1. Chọn thuật toán:</div>
+    <div class="radio-group">
+        <label class="radio-item">
+            <input type="radio" name="algorithm" value="Multinomial Naive Bayes" checked>
+            <span>Multinomial Naive Bayes</span>
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="algorithm" value="Logistic Regression">
+            <span>Logistic Regression</span>
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="algorithm" value="Support Vector Machine (SVM)">
+            <span>Support Vector Machine - SVM</span>
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="algorithm" value="Convolutional Neural Network (TextCNN)">
+            <span>Convolutional Neural Network (TextCNN)</span>
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="algorithm" value="Transformer (PhoBERT)">
+            <span>Transformer (PhoBERT)</span>
+        </label>
+    </div>
+        <div class="input-group">
+            <div class="section-label">2. Nhập câu phản hồi cần test:</div>
+            <textarea id="inputText" spellcheck="false" placeholder="Nhập văn bản phản hồi vào đây">Thầy dạy rất tận tâm, bài tập thực hành dễ hiểu.</textarea>
+        </div>
+    <button type="button" onclick="testSentiment()">Phân Tích Cảm Xúc</button>
+    <div class="result-box" id="resultBox">
+        <div class="result-title">Kết quả kiểm tra:</div>
+        <div class="result-row">
+            <span class="result-label">Thuật toán sử dụng:</span>
+            <span class="result-value" id="resAlgo">Multinomial Naive Bayes</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Nhãn dự đoán:</span>
+            <span class="result-value badge-pos" id="resLabel">Tích cực (Positive)</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Độ tin cậy:</span>
+            <span class="result-value" id="resConf">98.2%</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Chi tiết xác suất:</span>
+            <span class="result-value" id="resProbs">Tích cực: 98.2% | Trung tính: 1.1% | Tiêu cực: 0.7%</span>
+        </div>
+    </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
